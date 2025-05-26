@@ -8,7 +8,135 @@ import (
 	"secure-video-api/internal/database"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/google/uuid"
 )
+
+// RegisterAdmin registers a new admin user (super admin only)
+func RegisterAdmin(c *gin.Context) {
+	var req struct {
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if user already exists
+	var count int
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", req.Email).Scan(&count)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
+		return
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+
+	// Get current time
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+
+	// Insert new admin user
+	_, err = database.DB.Exec(`
+		INSERT INTO users (id, email, password, is_admin, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, uuid.New().String(), req.Email, string(hashedPassword), true, models.UserStatusActive, currentTime, currentTime)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create admin user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Admin user created successfully",
+		"email": req.Email,
+	})
+}
+
+// DeleteUser deletes a regular user (admin only)
+func DeleteUser(c *gin.Context) {
+	userID := c.Param("id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+		return
+	}
+
+	// Verify if user exists and is not an admin
+	var user models.User
+	err := database.DB.QueryRow(`
+		SELECT id, email, is_admin FROM users WHERE id = ?
+	`, userID).Scan(&user.ID, &user.Email, &user.IsAdmin)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if user.IsAdmin {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete admin user"})
+		return
+	}
+
+	// Delete the user
+	_, err = database.DB.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User deleted successfully",
+		"email": user.Email,
+	})
+}
+
+// DeleteAdmin deletes an admin user (super admin only)
+func DeleteAdmin(c *gin.Context) {
+	userID := c.Param("id")
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+		return
+	}
+
+	// Verify if user exists and is admin
+	var user models.User
+	err := database.DB.QueryRow(`
+		SELECT id, email, is_admin FROM users WHERE id = ?
+	`, userID).Scan(&user.ID, &user.Email, &user.IsAdmin)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	if !user.IsAdmin {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User is not an admin"})
+		return
+	}
+
+	// Delete the admin user
+	_, err = database.DB.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete admin user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Admin user deleted successfully",
+		"email": user.Email,
+	})
+}
 
 // ListUsers lists all users (admin only)
 func ListUsers(c *gin.Context) {

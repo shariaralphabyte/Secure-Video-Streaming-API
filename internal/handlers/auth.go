@@ -44,15 +44,23 @@ func Login(c *gin.Context) {
 
 	var user models.User
 	err := database.DB.QueryRow(
-		"SELECT id, password, is_admin FROM users WHERE email = ?",
+		"SELECT id, password, is_admin, status FROM users WHERE email = ?",
 		req.Email,
-	).Scan(&user.ID, &user.Password, &user.IsAdmin)
+	).Scan(&user.ID, &user.Password, &user.IsAdmin, &user.Status)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
-	} else if err != nil {
+	}
+
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// Check if user is inactive
+	if user.Status == models.UserStatusInactive {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Account is deactivated"})
 		return
 	}
 

@@ -118,6 +118,9 @@ func main() {
 				admin.GET("/users", handlers.ListUsers)
 				admin.POST("/users/:id/deactivate", handlers.DeactivateUser)
 				admin.POST("/users/:id/reactivate", handlers.ReactivateUser)
+				admin.DELETE("/users/:id", handlers.DeleteUser)
+				admin.POST("/admin/register", handlers.RegisterAdmin)
+				admin.DELETE("/admin/:id", handlers.DeleteAdmin)
 			}
 		}
 	}
