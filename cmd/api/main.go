@@ -109,9 +109,15 @@ func main() {
 			admin := protected.Group("/admin")
 			admin.Use(middleware.AdminMiddleware())
 			{
+				// Video management
 				admin.POST("/videos", handlers.UploadVideo)
 				admin.PUT("/videos/:id", handlers.UpdateVideo)
 				admin.DELETE("/videos/:id", handlers.DeleteVideo)
+
+				// User management
+				admin.GET("/users", handlers.ListUsers)
+				admin.POST("/users/:id/deactivate", handlers.DeactivateUser)
+				admin.POST("/users/:id/reactivate", handlers.ReactivateUser)
 			}
 		}
 	}

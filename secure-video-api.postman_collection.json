@@ -121,15 +121,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/videos/:id/stream",
+							"raw": "{{base_url}}/api/videos/{{video_id}}/stream",
 							"host": ["{{base_url}}"],
-							"path": ["api", "videos", ":id", "stream"],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
+							"path": ["api", "videos", "{{video_id}}", "stream"]
 						}
 					}
 				},
@@ -141,26 +135,27 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
 							}
 						],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Updated Video Title\",\n    \"description\": \"Updated video description\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/videos/:id",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "videos", ":id"],
-							"variable": [
+							"mode": "formdata",
+							"formdata": [
 								{
-									"key": "id",
-									"value": ""
+									"key": "title",
+									"value": "Updated Video Title",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Updated video description",
+									"type": "text"
 								}
 							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/videos/{{video_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "videos", "{{video_id}}"]
 						}
 					}
 				},
@@ -175,35 +170,69 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/admin/videos/:id",
+							"raw": "{{base_url}}/api/admin/videos/{{video_id}}",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "videos", ":id"],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
+							"path": ["api", "admin", "videos", "{{video_id}}"]
 						}
 					}
 				}
 			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [""]
-			}
 		},
 		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [""]
-			}
+			"name": "User Management",
+			"item": [
+				{
+					"name": "List Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users"]
+						}
+					}
+				},
+				{
+					"name": "Deactivate User (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/deactivate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}", "deactivate"]
+						}
+					}
+				},
+				{
+					"name": "Reactivate User (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/reactivate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}", "reactivate"]
+						}
+					}
+				}
+			]
 		}
 	],
 	"variable": [
@@ -214,6 +243,16 @@
 		},
 		{
 			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "video_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
 			"value": "",
 			"type": "string"
 		}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
@@ -26,6 +27,7 @@ func InitDB() error {
 			email TEXT UNIQUE NOT NULL,
 			password TEXT NOT NULL,
 			is_admin BOOLEAN DEFAULT FALSE,
+			status TEXT DEFAULT 'active',
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
@@ -77,10 +79,11 @@ func CreateDefaultAdmin() error {
 	}
 
 	// Create admin user
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
 	_, err = DB.Exec(`
-		INSERT INTO users (id, email, password, is_admin, created_at, updated_at)
-		VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-	`, generateUUID(), email, string(hashedPassword), true)
+		INSERT INTO users (id, email, password, is_admin, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, generateUUID(), email, string(hashedPassword), true, "active", currentTime, currentTime)
 
 	return err
 }
