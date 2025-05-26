@@ -10,6 +10,7 @@ A secure video streaming service built with Go that provides encrypted video sto
 - Video streaming with range request support
 - CRUD operations for video management (Admin only)
 - SQLite database for data persistence
+- User management using revolk token
 
 ## Prerequisites
 
@@ -21,7 +22,7 @@ A secure video streaming service built with Go that provides encrypted video sto
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone [<repository-url>](https://github.com/shariaralphabyte/Secure-Video-Streaming-API.git)
 cd secure-video-api
 ```
 
@@ -118,6 +119,4 @@ Password: Alpha1234
 └── .env
 ```
 
-## License
 
-MIT License
